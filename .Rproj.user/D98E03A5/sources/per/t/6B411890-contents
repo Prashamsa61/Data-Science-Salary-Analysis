@@ -1,0 +1,411 @@
+\documentclass{article}
+
+\title{Data Visualization Assignment: Analyzing Data Science Salaries}
+\author{Prashamsa Rijal \\ Student Number: 23140743\\Total Word Count: 985 \\ June 12, 2024}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{subcaption}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{patterns}
+
+\begin{document}
+
+\maketitle
+
+\newpage
+\tableofcontents
+\newpage
+\listoffigures
+
+\newpage
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+
+The "Latest Data Science Salaries" dataset provides valuable insights into the compensation trends and variations in the field of data science from 2020 to 2024. This dataset encompasses a comprehensive collection of salary information from various industries, organizations, and geographic regions, enabling data professionals, researchers, and organizations to analyze and understand the prevailing salary landscape in the data science domain during this four-year period. By examining this dataset, one can gain a deeper understanding of the factors influencing data science salaries, such as job roles, experience levels, educational backgrounds, and geographical locations.
+
+The dataset serves as a valuable resource for individuals seeking career guidance, companies aiming to benchmark their compensation strategies, and researchers investigating the evolving dynamics of the data science job market.
+
+\newpage
+\section{Introduction}
+\subsection{Summarise}
+This report is based on analyzing data science salaries from 2020 to 2024. The dataset includes detailed information on various job roles, experience levels, expertise levels, salaries, company characteristics, and geographical locations. The aim is to provide a comprehensive understanding of the salary trends and factors affecting compensation in the data science field.
+
+The report is designed for readers with a medium level of understanding of data analysis and visualization. Additionally, some advanced topics are included for more experienced readers. The report addresses several key questions and provides conclusions based on the dataset.
+
+\subsection{Highlight}
+Overall, there are several interesting observations in this report:
+\begin{itemize}
+    \item Trends in salary growth over the four-year period.
+    \item The impact of job roles and experience levels on salaries.
+    \item Regional variations in data science compensation.
+    \item The influence of company size and industry on salary levels.
+\end{itemize}
+
+These highlights provide a snapshot of the key findings from the dataset. Different readers may find different aspects more interesting, reflecting the diversity of perspectives in the field of data science.
+
+\subsection{Aim}
+The aim of this report is to explore and answer some of the most common questions regarding data science salaries. It investigates whether certain factors such as job role, experience level, educational background, and geographical location significantly impact compensation.
+
+Another important goal is to dispel common misconceptions about data science salaries and provide a data-driven perspective on the job market dynamics.
+
+\subsection{Achievements}
+This report offers answers to several popular questions regarding data science salaries. It includes visualizations and analyses that map out salary distributions across different regions, identify the most lucrative job roles, and track salary changes over time.
+
+Some theories about factors influencing salaries are confirmed, while others are challenged based on the data. For example, the analysis may show that experience level has a more significant impact on salary than educational background, or that salaries are higher in certain regions regardless of company size.
+
+\subsection{Organised}
+The structure of this report is as follows:
+\begin{enumerate}
+    \item Title
+    \begin{enumerate}
+        \item Subtitle (if applicable)
+        \item Description
+        \item Graphs (graphs are on their own page)
+    \end{enumerate}
+\end{enumerate}
+
+This organization ensures that the information is presented in a logical and easy-to-follow manner, allowing readers to efficiently navigate through the various sections and find the insights they are most interested in.
+
+
+\newpage
+\section{Motivation and Objectives}
+\subsection{Motivation}
+The motivation behind this report stems from the growing interest in the field of data science and the increasing demand for data science professionals. Understanding salary trends and the factors that influence compensation is crucial for both job seekers and employers. This dataset, containing 3300 rows and 11 columns, offers a comprehensive overview of the salary landscape in data science from 2020 to 2024, making it an invaluable resource for detailed analysis and insights.
+
+\subsection{Description of Selected Data}
+The "Latest Data Science Salaries" dataset provides detailed information on various aspects of data science jobs. The dataset contains 3300 rows and includes the following 11 columns:
+\begin{itemize}
+    \item Job Title
+    \item Employment Type
+    \item Experience Level
+    \item Expertise Level
+    \item Salary
+    \item Salary Currency
+    \item Company Location
+    \item Salary in USD
+    \item Employee Residence
+    \item Company Size
+    \item Year
+\end{itemize}
+This extensive dataset enables a thorough analysis of the various factors that impact salaries in the data science field.
+
+\subsection{Objectives}
+The primary objective of this report is to analyze the "Latest Data Science Salaries" dataset to uncover trends and patterns in data science compensation. Specifically, it aims to identify the most significant factors influencing salaries, examine salary evolution over the four-year period, provide insights into regional variations, and offer data-driven conclusions to dispel common misconceptions about data science salaries.
+
+\newpage
+\section{Questions about Dataset}
+
+<<echo=FALSE,warning=FALSE,message=FALSE,results='hide'>>=
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(plotly)
+library(scales)
+library(rworldmap)
+library(maps)
+library(ggmap)
+library(gridExtra) # For grid.arrange
+
+# Import the data set
+data <- read.csv("dataset.csv")
+
+# --- Data Preprocessing ---
+
+# Rename columns for readability
+data <- data %>%
+  rename(
+    JobTitle = Job.Title,
+    EmploymentType = Employment.Type,
+    ExperienceLevel = Experience.Level,
+    ExpertiseLevel = Expertise.Level,
+    SalaryCurrency = Salary.Currency,
+    CompanyLocation = Company.Location,
+    SalaryInUSD = Salary.in.USD,
+    EmployeeResidence = Employee.Residence,
+    CompanySize = Company.Size,
+    Year = Year
+  )
+
+# --- Exploratory Data Analysis (EDA) --- 
+
+# Summary statistics
+summary(data)
+
+# Data types and missing values
+str(data)
+@
+\newpage
+\section{Experimental Results}
+\subsection{Salary Comparision of Data Scientists and Data Engineers based on expertise levels in the United States}
+\textbf{This visualization explores the relationship between expertise level and salary for Data Scientists and Data Engineers in the United States. As the expertise level is good the salry is seen to be improved as well in both of the cases.While comparing the Data Scientist Job is seemes to have high income in case of expert and intermediate expertise.} 
+
+<<echo=FALSE,warning=FALSE>>=
+# (Separate Line Charts)
+filtered_data <- data %>%
+  filter(JobTitle %in% c("Data Scientist", "Data Engineer")) %>% 
+  filter(CompanyLocation == "United States") 
+
+# Data Scientist Plot
+p1a <- ggplot(filtered_data %>% filter(JobTitle == "Data Scientist"), aes(x = ExpertiseLevel, y = SalaryInUSD, group = JobTitle)) +
+  stat_summary(fun = "mean", geom = "line", size = 1) + 
+  stat_summary(fun.data = "mean_se", geom = "errorbar", width = 0.1) +
+  labs(x = "Expertise Level", y = "Average Salary (USD)") +
+  ggtitle("Average Salary for Data Scientists by Expertise Level (US)") +
+  scale_color_manual(values = c("Data Scientist" = "#00AFBB")) + # Only one color needed here
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.background = element_blank(), 
+        panel.grid.major = element_line(color = "gray", size = 0.2, linetype = "dashed"), 
+        panel.grid.minor = element_line(color = "gray", size = 0.1, linetype = "dashed")
+  ) +
+  scale_y_continuous(labels = scales::comma_format(scale = 1e-3, suffix = "K")) # Display in K terms
+# Display the plot
+print(p1a) 
+
+# Data Engineer Plot
+p1b <- ggplot(filtered_data %>% filter(JobTitle == "Data Engineer"), aes(x = ExpertiseLevel, y = SalaryInUSD, group = JobTitle)) +
+  stat_summary(fun = "mean", geom = "line", size = 1) + 
+  stat_summary(fun.data = "mean_se", geom = "errorbar", width = 0.1) +
+  labs(x = "Expertise Level", y = "Average Salary (USD)") +
+  ggtitle("Average Salary for Data Engineers by Expertise Level (US)") +
+  scale_color_manual(values = c("Data Engineer" = "#E7B800")) + # Only one color needed here
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.background = element_blank(), 
+        panel.grid.major = element_line(color = "gray", size = 0.2, linetype = "dashed"), 
+        panel.grid.minor = element_line(color = "gray", size = 0.1, linetype = "dashed")
+  ) +
+  scale_y_continuous(labels = scales::comma_format(scale = 1e-3, suffix = "K")) 
+
+# Display the plot
+print(p1b) 
+
+# (Combined Chart)
+filtered_data <- data %>%
+  filter(JobTitle %in% c("Data Scientist", "Data Engineer")) %>% 
+  filter(CompanyLocation == "United States") 
+
+p1c <- ggplot(filtered_data, aes(x = ExpertiseLevel, y = SalaryInUSD, color = JobTitle, group = JobTitle)) +
+  stat_summary(fun = "mean", geom = "line", size = 1) + 
+  stat_summary(fun.data = "mean_se", geom = "errorbar", width = 0.1) +
+  labs(x = "Expertise Level", y = "Average Salary (USD)") +
+  ggtitle("Average Salary for Data Scientists and Data Engineers by Expertise Level (US)") +
+  scale_color_manual(values = c("Data Scientist" = "#00AFBB", "Data Engineer" = "#E7B800")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.background = element_blank(), 
+        panel.grid.major = element_line(color = "gray", size = 0.2, linetype = "dashed"), 
+        panel.grid.minor = element_line(color = "gray", size = 0.1, linetype = "dashed")
+  ) +
+  scale_y_continuous(labels = scales::comma_format(scale = 1e-3, suffix = "K")) # Display in K terms
+
+# Display the plot
+print(p1c)
+@
+
+\newpage
+\subsection{Varaince of Salary in Different Employment Type}
+
+\textbf{This visualization shows how much data professionals earn based on their experience and the type of work they do (full-time, part-time, etc.). The plots show that the people who do full time earn the highest if they are executive or mid level.In other cases(contract and freelance) the mid experience is the most earning. }
+
+<<echo=FALSE,warning=FALSE,message=FALSE>>=
+# Question 2: How Does Salary Vary by Experience Level in Different Employment Types? 
+
+# 1. Calculate average salary for each experience level and employment type
+salary_by_experience_type <- data %>%
+  group_by(ExperienceLevel, EmploymentType) %>%
+  summarize(AverageSalary = mean(SalaryInUSD, na.rm = TRUE))
+
+# 2. Create the plot
+p2 <- ggplot(salary_by_experience_type, aes(x = ExperienceLevel, y = AverageSalary, color = ExperienceLevel, group = ExperienceLevel)) +
+  geom_point(size = 3) +  # Use geom_point instead of geom_line
+  geom_line(size = 1) +  # Add lines to connect the points
+  labs(x = "Experience Level", y = "Average Salary (USD)", title = "Salary vs. Experience by Employment Type") +
+  facet_wrap(~ EmploymentType, scales = "free_y") + # Use free_y for independent y-axis scales
+  theme_minimal() +
+  scale_y_continuous(labels = comma_format(scale = 1e-3, suffix = "K")) 
+
+# Display the plot
+print(p2)
+
+
+@
+
+<<echo=FALSE,warning=FALSE>>=
+p2 <- ggplot(data, aes(x = ExperienceLevel, y = SalaryInUSD, color = ExperienceLevel)) +
+  geom_point(alpha = 0.7) +
+  labs(x = "Experience Level", y = "Salary (USD)", title = "Salary vs. Experience by Employment Type") +
+  facet_wrap(~ EmploymentType, scales = "free") +
+  theme_minimal() +
+  scale_y_continuous(labels = comma_format(scale = 1e-3, suffix = "K")) 
+
+# Display the static plot
+print(p2)
+@
+
+\newpage
+\subsection{Salary Trend Over Time by Based on Experience Level}
+\textbf{This visualization tracks how average salaries have changed over the years for data science professionals, grouped by how much experience they have. From visualization we can observe that there is increment in money over the time after 2021 in 2021 there was a fluctation in salary for all the job holders.} 
+
+<<echo=FALSE,warning=FALSE,message=FALSE>>=
+# Calculate average salary for each year and experience level
+salary_trend_by_experience <- data %>%
+  group_by(Year, ExperienceLevel) %>%
+  summarize(AverageSalary = mean(SalaryInUSD, na.rm = TRUE))
+
+# Create the static line plot
+p <- ggplot(salary_trend_by_experience, aes(x = Year, y = AverageSalary, color = ExperienceLevel, group = ExperienceLevel)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(x = "Year", y = "Average Salary (USD)", title = "Salary Trends by Experience Level") +
+  facet_wrap(~ ExperienceLevel, scales = "free_y") +  # Facet by experience level with independent y-axis scales
+  theme_minimal() +
+  scale_y_continuous(labels = comma_format(scale = 1e-3, suffix = "K")) 
+
+# Display the plot
+print(p) 
+@
+
+
+\newpage
+\subsection{Change in company Size Over Time}
+\textbf{This visualization shows how the number of data science companies of different sizes has changed over the years. The bar chart shows how many companies are in each size category for each year.We can see that medium sized company has increased alot compared to others over the year although at first there were more large companies. }
+
+<<echo=FALSE,warning=FALSE,message=FALSE>>=
+# Question 7: How Has Company Size Distribution Changed Over Time?
+# (Pie Chart and Bar Chart)
+
+# Calculate proportions of company sizes for each year
+data_proportions <- data %>%
+  group_by(Year, CompanySize) %>%
+  summarise(Count = n()) %>%
+  mutate(Proportion = Count / sum(Count))
+
+# Bar chart of company size distribution over time
+p7_bar <- ggplot(data_proportions, aes(x = Year, y = Count, fill = CompanySize)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    x = "Year",
+    y = "Count",
+    title = "Company Size Distribution Over Time"
+  ) +
+  theme_minimal()
+
+print(p7_bar)
+
+@
+
+
+\newpage
+\subsection{Salary Expectations accross different Jobs}
+\textbf{This visualization shows how salaries for the 10 highest-paying data science job roles have changed over the years. Some jobs were highest paying for a year only then it was no more seen in other years whereas the one job that is seen from 2020 till 2023 is Director of Data Science.Comapred to 2022 the income has decreased for many of the job roles.} 
+
+<<echo=FALSE,warning=FALSE,message=FALSE>>=
+
+# Calculate the average salary for each job role and year
+salary_by_role_year <- data %>%
+  group_by(Year, JobTitle) %>%
+  summarize(AverageSalary = mean(SalaryInUSD, na.rm = TRUE))
+
+# Get the top 10 highest-paying job roles
+top_roles <- salary_by_role_year %>%
+  group_by(JobTitle) %>%
+  summarize(MeanSalary = mean(AverageSalary)) %>%
+  arrange(desc(MeanSalary)) %>%
+  slice(1:10) %>%
+  pull(JobTitle)
+
+# Filter the salary data for the top 10 roles
+salary_by_role_year_top <- salary_by_role_year %>%
+  filter(JobTitle %in% top_roles)
+
+# Create a line plot with a nicer theme and labels
+p8 <- ggplot(salary_by_role_year_top, aes(x = Year, y = AverageSalary, color = JobTitle, group = JobTitle)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(x = "Year", y = "Average Salary (USD)", title = "Salary Trends for Top 10 Data Science Job Roles") +
+  theme_bw() + 
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10),
+    panel.grid.major = element_line(color = "gray", linetype = "dashed"),
+    panel.grid.minor = element_blank(),
+    legend.position = "right", # Include the legend
+    legend.title = element_blank(), # Remove legend title for simplicity
+    legend.text = element_text(size = 10)
+  ) +
+  scale_y_continuous(labels = scales::comma_format(scale = 1e-3, suffix = "K")) +
+  # Add labels to the end of each line, colored to match the lines
+  geom_text(
+    data = salary_by_role_year_top %>% 
+      group_by(JobTitle) %>%
+      slice_tail(n = 1), 
+    aes(label = JobTitle, color = JobTitle), 
+    hjust = -0.1, vjust = 0.5, size = 4, show.legend = FALSE
+  )
+
+# Display the plot
+print(p8)
+
+@
+
+<<echo=FALSE,warning=FALSE,comment=FALSE>>=
+#8. Distribution of Experience Levels Across Top 20 Job Titles (Bar Chart)
+# Question:  Which job titles have the highest concentration of professionals at different experience levels (entry, mid, senior)?
+job_experience_counts <- data %>%
+  group_by(JobTitle, ExperienceLevel) %>%
+  summarise(count = n())
+
+top_20_job_titles <- job_experience_counts %>%
+  group_by(JobTitle) %>%
+  summarise(total_count = sum(count)) %>%
+  arrange(desc(total_count)) %>%  # Arrange in descending order of total_count
+  head(20) %>%
+  pull(JobTitle)
+
+filtered_data <- job_experience_counts %>%
+  filter(JobTitle %in% top_20_job_titles)
+
+p8 <- ggplot(filtered_data, aes(x = JobTitle, y = count, fill = ExperienceLevel)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Distribution of Experience Levels Across Top 20 Job Titles",
+       x = "Job Title",
+       y = "Count",
+       fill = "Experience Level") +
+  theme(axis.text.x = element_text(hjust = 1)) + 
+  coord_flip() 
+
+print(p8)
+@
+
+
+
+
+\newpage
+\section{Summary}
+
+\newpage
+\section{References}
+\addcontentsline{toc}{section}{References}
+\begin{itemize}
+
+\item {KaggleDataset2023}
+Kaggle. (2023). Data Science Salaries 2023. Kaggle. Available at: https://www.kaggle.com/datasets/iamsouravbanerjee/data-science-salaries-2023 
+
+\item {AIJobsNet2023}
+AI-Jobs.net. (2023). Data Science Salaries. Available at: https://ai-jobs.net/ 
+
+\item {Ramachandran2024}
+Ramachandran, K. K. (2024). Data Science in the 21st Century: Evolution, Challenges, and Future Directions. *International Journal of Business and Data Analytics*, 1(1), 1-15. 
+\end{itemize}
+
+\end{document} 
